@@ -68,7 +68,7 @@ class IndexHandler(BaseHandler, DatabaseMixin):
     @defer.inlineCallbacks
     def post(self, *ign):
         blen = len(self.request.body)
-        if blen > self.settings.limits.max_pbsize_bytes:
+        if blen > self.settings.limits.pbsize:
             raise cyclone.web.HTTPError(400,
                                         "buffer too large (%d bytes)" % blen)
 
@@ -91,11 +91,11 @@ class IndexHandler(BaseHandler, DatabaseMixin):
             n = yield self.redis.incr("n")
             if n == 1:
                 yield self.redis.expire("n",
-                                self.settings.limits.pb_expire_seconds * 10)
+                                self.settings.limits.pbexpire * 10)
 
             k = "n:%d" % n
             yield self.redis.set(k, self.request.body)
-            yield self.redis.expire(k, self.settings.limits.pb_expire_seconds)
+            yield self.redis.expire(k, self.settings.limits.pbexpire)
         except Exception, e:
             log.err("redis failed on post: %s" % e)
             raise cyclone.web.HTTPError(503)  # Service Unavailable
