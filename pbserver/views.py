@@ -87,11 +87,10 @@ class IndexHandler(BaseHandler, DatabaseMixin):
     def post(self, *ign):
         self.set_header("Content-Type", "text/plain")
 
-        k = "g:%s" % self.request.remote_ip
         blen = len(self.request.body)
         if blen > self.settings.limits.pbsize:
             raise cyclone.web.HTTPError(400,
-                                        "buffer too large (%d bytes)" % blen)
+                                        "text too large (%d bytes)" % blen)
 
         # throttle
         ip = struct.unpack('!I', socket.inet_aton(self.request.remote_ip))[0]
