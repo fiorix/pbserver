@@ -71,6 +71,7 @@ class IndexHandler(BaseHandler, DatabaseMixin):
                     raise cyclone.web.HTTPError(404)
         else:
             if "text/html" in self.request.headers.get("Accept"):
+                self.set_header("Content-Type", "text/html; charset=UTF-8")
                 self.render("index.html")
             else:
                 self.finish("Use: xpbpaste <pbid>\r\n")
