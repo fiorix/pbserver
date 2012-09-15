@@ -21,7 +21,9 @@ import cyclone.locale
 import cyclone.web
 
 import random
+import socket
 import string
+import struct
 import time
 
 from twisted.internet import defer
@@ -39,7 +41,8 @@ class IndexHandler(BaseHandler, DatabaseMixin):
         self.set_header("Content-Type", "text/plain")
 
         # throttle
-        k = "g:%s" % self.request.remote_ip
+        k = "g:%d" % \
+            struct.unpack('!I', socket.inet_aton(self.request.remote_ip))[0]
         try:
             r = yield self.redis.get(k)
             assert r < self.settings.limits.throttle_get
@@ -87,7 +90,8 @@ class IndexHandler(BaseHandler, DatabaseMixin):
                                         "buffer too large (%d bytes)" % blen)
 
         # throttle
-        k = "p:%s" % self.request.remote_ip
+        ip = struct.unpack('!I', socket.inet_aton(self.request.remote_ip))[0]
+        k = "p:%d" % ip
         try:
             r = yield self.redis.get(k)
             assert r < self.settings.limits.throttle_post
@@ -107,6 +111,7 @@ class IndexHandler(BaseHandler, DatabaseMixin):
                 yield self.redis.expire("n",
                                 self.settings.limits.pbexpire * 10)
 
+            n += (ip + blen)
             k = "n:%d" % n
             yield self.redis.set(k, self.request.body)
             yield self.redis.expire(k, self.settings.limits.pbexpire)
