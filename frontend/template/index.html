@@ -19,9 +19,8 @@ function xpbcopy() {
 }
 
 function xpbpaste() {
-  pbserver=${pbserver}/$1
-  if [[ -x `which curl` ]]; then curl ${pbserver}
-  elif [[ -x `which wget` ]]; then wget -qO- ${pbserver}
+  if [[ -x `which curl` ]]; then curl ${pbserver}/$1
+  elif [[ -x `which wget` ]]; then wget -qO- ${pbserver}/$1
   else
     echo "xpbpaste requires curl or wget"
     exit 1
