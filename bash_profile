@@ -1,5 +1,5 @@
 # xpbcopy and xpbpaste
-#pbserver=http://xpb.cyclone.io
+#pbserver=http://cos.pe
 pbserver=http://localhost:8888
 
 function xpbcopy() {
