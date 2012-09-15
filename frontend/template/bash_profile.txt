@@ -1,5 +1,5 @@
 # xpbcopy and xpbpaste
-pbserver=http://localhost:8888
+pbserver={{url}}
 
 function xpbcopy() {
   tmp=/tmp/xpbcopy.$$

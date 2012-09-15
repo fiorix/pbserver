@@ -20,11 +20,8 @@ import cyclone.escape
 import cyclone.locale
 import cyclone.web
 
-import random
 import socket
-import string
 import struct
-import time
 
 from twisted.internet import defer
 from twisted.python import log
@@ -32,7 +29,12 @@ from twisted.python import log
 from pbserver import base62
 from pbserver.utils import BaseHandler
 from pbserver.utils import DatabaseMixin
-from pbserver.utils import TemplateFields
+
+
+class BashHandler(BaseHandler):
+    def get(self):
+        self.render("bash_profile.txt", url="%s://%s" %
+                    (self.request.protocol, self.request.host))
 
 
 class IndexHandler(BaseHandler, DatabaseMixin):
@@ -75,7 +77,8 @@ class IndexHandler(BaseHandler, DatabaseMixin):
         else:
             if "text/html" in self.request.headers.get("Accept"):
                 self.set_header("Content-Type", "text/html; charset=UTF-8")
-                self.render("index.html")
+                url = "%s://%s" % (self.request.protocol, self.request.host)
+                self.render("index.html", url=url)
             else:
                 self.finish("Use: xpbpaste <pbid>\r\n")
 

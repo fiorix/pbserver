@@ -1,30 +1,11 @@
 {% extends 'base.html' %}
 {% block page %}
-<h1>{{_("xpbcopy and xpbpaste")}}</h1>
-<p>add to your ~/.bash_profile:</p>
-<pre>
-# xpbcopy and xpbpaste
-pbserver=http://cos.pe
-
-function xpbcopy() {
-  tmp=/tmp/xpbcopy.$$
-  trap "rm -f ${tmp}" EXIT
-  IFS=$"\n" cat "${1:-/dev/stdin}" > $tmp
-  if [[ -x `which curl` ]]; then curl --data-binary @${tmp} ${pbserver}
-  elif [[ -x `which wget` ]]; then wget --post-file=${tmp} -qO- ${pbserver}
-  else
-    echo "xpbcopy requires curl or wget"
-    exit 1
-  fi
-}
-
-function xpbpaste() {
-  if [[ -x `which curl` ]]; then curl ${pbserver}/$1
-  elif [[ -x `which wget` ]]; then wget -qO- ${pbserver}/$1
-  else
-    echo "xpbpaste requires curl or wget"
-    exit 1
-  fi
-}
-</pre>
+<h1>xpbcopy and xpbpaste <small>web clipboard</small></h1>
+<p>1. Make sure you have <a href="http://curl.haxx.se/">curl</a> or <a href="http://www.gnu.org/software/wget/">wget</a></p>
+<p>2. Add <i>xpbcopy</i> and <i>xpbpaste</i> bash functions to your ~/.bash_profile:</p>
+<pre>curl {{url}}/bash &gt;&gt; ~/.bash_profile</pre>
+<p>3. Copy (example):</p>
+<pre>cat /etc/hosts | xpbcopy</pre>
+<p>4. Paste:</p>
+<pre>xpbpaste &lt;pbid&gt;</pre>
 {% end %}

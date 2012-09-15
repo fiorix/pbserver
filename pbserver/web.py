@@ -26,12 +26,9 @@ from pbserver.utils import DatabaseMixin
 
 class Application(cyclone.web.Application):
     def __init__(self, config_file):
-        handlers = [(r"/(.*)", views.IndexHandler)]
+        handlers = [(r"/bash", views.BashHandler),
+                    (r"/(.*)", views.IndexHandler)]
+
         settings = config.parse_config(config_file)
-
-        # Set up database connections
         DatabaseMixin.setup(settings)
-
-        #settings["login_url"] = "/auth/login"
-        #settings["autoescape"] = None
         cyclone.web.Application.__init__(self, handlers, **settings)
