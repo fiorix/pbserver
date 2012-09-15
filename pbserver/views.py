@@ -36,6 +36,8 @@ from pbserver.utils import TemplateFields
 class IndexHandler(BaseHandler, DatabaseMixin):
     @defer.inlineCallbacks
     def get(self, n):
+        self.set_header("Content-Type", "text/plain")
+
         # throttle
         k = "g:%s" % self.request.remote_ip
         try:
@@ -53,7 +55,12 @@ class IndexHandler(BaseHandler, DatabaseMixin):
 
         if n:
             try:
-                buf = yield self.redis.get("n:%s" % base62.base62_decode(n))
+                k = "n:%s" % base62.base62_decode(n)
+            except:
+                raise cyclone.web.HTTPError(404)
+
+            try:
+                buf = yield self.redis.get(k)
             except Exception, e:
                 log.err("redis failed on get: %s" % e)
                 raise cyclone.web.HTTPError(503)  # Service Unavailable
@@ -67,6 +74,9 @@ class IndexHandler(BaseHandler, DatabaseMixin):
 
     @defer.inlineCallbacks
     def post(self, *ign):
+        self.set_header("Content-Type", "text/plain")
+
+        k = "g:%s" % self.request.remote_ip
         blen = len(self.request.body)
         if blen > self.settings.limits.pbsize:
             raise cyclone.web.HTTPError(400,
@@ -106,6 +116,7 @@ class IndexHandler(BaseHandler, DatabaseMixin):
             #                                base62.base62_encode(n)))
 
     def write_error(self, status_code, **kwargs):
+
         if status_code == 400:
             self.finish("Bad request: %s\r\n" %
                         kwargs["exception"].log_message)
@@ -114,15 +125,12 @@ class IndexHandler(BaseHandler, DatabaseMixin):
             self.finish("Forbidden: reached maximum service quotas. "
                         "Try again later.\r\n")
 
+        elif status_code == 404:
+            self.finish("Not found.\r\n")
+
         elif status_code == 503:
             self.finish("Service temporarily unavailable. "
                         "Try again later.\r\n")
 
-
-class LangHandler(BaseHandler):
-    def get(self, lang_code):
-        if lang_code in cyclone.locale.get_supported_locales():
-            self.set_secure_cookie("lang", lang_code)
-
-        self.redirect(self.request.headers.get("Referer",
-                                               self.get_argument("next", "/")))
+        else:
+            BaseHandler.write_error(self, status_code, **kwargs)

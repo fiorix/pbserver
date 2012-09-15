@@ -26,17 +26,8 @@ from pbserver.utils import DatabaseMixin
 
 class Application(cyclone.web.Application):
     def __init__(self, config_file):
-        handlers = [
-            (r"/(.*)", views.IndexHandler),
-            (r"/lang/(.+)", views.LangHandler),
-        ]
-
+        handlers = [(r"/(.*)", views.IndexHandler)]
         settings = config.parse_config(config_file)
-
-        # Initialize locales
-        locales = settings.get("locale_path")
-        if locales:
-            cyclone.locale.load_gettext_translations(locales, "pbserver")
 
         # Set up database connections
         DatabaseMixin.setup(settings)
