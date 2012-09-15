@@ -14,6 +14,7 @@ function xpbcopy() {
 }
 
 function xpbpaste() {
+  xpburl=${xpburl}/$*
   if [[ -x `which curl` ]]; then curl ${xpburl}
   elif [[ -x `which wget` ]]; then wget -qO- ${xpburl}
   else
