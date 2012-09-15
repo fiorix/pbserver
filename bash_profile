@@ -1,5 +1,5 @@
 # xpbcopy and xpbpaste
-xpburl=http://pb.cyclone.io
+xpburl=http://xpb.cyclone.io
 
 function xpbcopy() {
   tmp=/tmp/xpbcopy.$$
