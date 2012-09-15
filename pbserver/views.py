@@ -33,6 +33,7 @@ from pbserver.utils import DatabaseMixin
 
 class BashHandler(BaseHandler):
     def get(self):
+        self.set_header("Content-Type", "text/plain")
         self.render("bash_profile.txt", url="%s://%s" %
                     (self.request.protocol, self.request.host))
 
