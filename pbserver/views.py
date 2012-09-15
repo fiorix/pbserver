@@ -65,7 +65,10 @@ class IndexHandler(BaseHandler, DatabaseMixin):
                 log.err("redis failed on get: %s" % e)
                 raise cyclone.web.HTTPError(503)  # Service Unavailable
             else:
-                self.finish(buf)
+                if buf:
+                    self.finish(buf)
+                else:
+                    raise cyclone.web.HTTPError(404)
         else:
             if "text/html" in self.request.headers.get("Accept"):
                 self.render("index.html")
@@ -126,7 +129,7 @@ class IndexHandler(BaseHandler, DatabaseMixin):
                         "Try again later.\r\n")
 
         elif status_code == 404:
-            self.finish("Not found.\r\n")
+            self.finish()
 
         elif status_code == 503:
             self.finish("Service temporarily unavailable. "
