@@ -1,0 +1,36 @@
+{% extends 'template.html' %}
+{% block page %}
+<h1>{{_("xpbcopy and xpbpaste")}}</h1>
+<p>add to your ~/.bash_profile:</p>
+<pre>
+xpburl=http://localhost:8888
+
+function xpbcopy() {
+  tmp=/tmp/xpbcopy.$$
+  trap "rm -f ${tmp}" EXIT
+  IFS=$"\n" cat "${1:-/dev/stdin}" > $tmp
+  if [[ -x `which curl` ]]; then curl --data-binary @${tmp} ${xpburl}
+  elif [[ -x `which wget` ]]; then wget --post-file=${tmp} -qO- ${xpburl}
+  else
+    echo "xpbcopy requires curl or wget"
+    exit 1
+  fi
+}
+
+function xpbpaste() {
+  if [[ -x `which curl` ]]; then curl ${xpburl}
+  elif [[ -x `which wget` ]]; then wget -qO- ${xpburl}
+  else
+    echo "xpbpaste requires curl or wget"
+    exit 1
+  fi
+}
+</pre>
+<p>
+<small>
+<a href="/lang/en_US">English</a>&nbsp;
+<a href="/lang/es_ES">Español</a>&nbsp;
+<a href="/lang/pt_BR">Português</a>
+</small>
+</p>
+{% end %}
