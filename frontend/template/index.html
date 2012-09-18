@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block page %}
 <h1>xpbcopy and xpbpaste <small>web clipboard</small></h1>
+<br/>
 <p>1. Make sure you have <a href="http://curl.haxx.se/">curl</a> or <a href="http://www.gnu.org/software/wget/">wget</a></p>
 <p>2. Add <i>xpbcopy</i> and <i>xpbpaste</i> bash functions to your ~/.bash_profile:</p>
 <pre>curl {{url}}/bash &gt;&gt; ~/.bash_profile</pre>
@@ -9,4 +10,8 @@
 <p>4. Paste:</p>
 <pre>xpbpaste &lt;pbid&gt;</pre>
 <p>Or get directly from <code>{{url}}/&lt;pbid&gt;</code></p>
+<p>There's also a <a href="http://www.vim.org">vim</a> plugin: <a href="https://github.com/fbueno/cospe.vim">https://github.com/fbueno/cospe.vim</a></p>
+<br/>
+<h3>Service limits</h3>
+<p>{{limit}}</p>
 {% end %}

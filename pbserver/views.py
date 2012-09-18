@@ -31,6 +31,33 @@ from pbserver.utils import BaseHandler
 from pbserver.utils import DatabaseMixin
 
 
+# convert bytes to human readable strings
+human_bytes = lambda s: [(s % 1024 ** i and "%.1f" % (s / 1024.0 ** i) or
+                          str(s / 1024 ** i)) + x.strip() + "B"
+                          for i, x in enumerate(' KMGTPEZY')
+                          if s < 1024 ** (i + 1) or i == 8][0]
+
+
+# convert seconds to human readable strings
+def human_time(_, seconds):
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    z = []
+    if h:
+        z.append(_("%(n)d hour", "%(n)d hours", h) % {"n": h})
+    if m:
+        z.append(_("%(n)d minute", "%(n)d minutes", m) % {"n": m})
+    if s:
+        z.append(_("%(n)d seconds", "%(n)d seconds", s) % {"n": s})
+
+    if len(z) == 3:
+        return "%s, %s and %s" % (z[0], z[1], z[2])
+    elif len(z) == 2:
+        return " and ".join(z)
+    else:
+        return z[0]
+
+
 class BashHandler(BaseHandler):
     def get(self):
         self.set_header("Content-Type", "text/plain")
@@ -41,25 +68,26 @@ class BashHandler(BaseHandler):
 class IndexHandler(BaseHandler, DatabaseMixin):
     @defer.inlineCallbacks
     def get(self, n):
-        self.set_header("Content-Type", "text/plain")
-
-        # throttle
-        k = "g:%d" % \
-            struct.unpack('!I', socket.inet_aton(self.request.remote_ip))[0]
-        try:
-            r = yield self.redis.get(k)
-            assert r < self.settings.limits.throttle_get
-            yield self.redis.incr(k)
-            if not r:
-                yield self.redis.expire(k,
-                                        self.settings.limits.throttle_interval)
-        except AssertionError:
-            raise cyclone.web.HTTPError(403)  # Forbidden
-        except Exception, e:
-            log.err("redis failed on get (throttle): %s" % e)
-            raise cyclone.web.HTTPError(503)  # Service Unavailable
-
         if n:
+            self.set_header("Content-Type", "text/plain")
+
+            # throttle
+            k = "g:%d" % \
+                struct.unpack('!I',
+                              socket.inet_aton(self.request.remote_ip))[0]
+            try:
+                r = yield self.redis.get(k)
+                assert r < self.settings.limits.throttle_get
+                yield self.redis.incr(k)
+                if not r:
+                    yield self.redis.expire(k,
+                                        self.settings.limits.throttle_interval)
+            except AssertionError:
+                raise cyclone.web.HTTPError(403)  # Forbidden
+            except Exception, e:
+                log.err("redis failed on get (throttle): %s" % e)
+                raise cyclone.web.HTTPError(503)  # Service Unavailable
+
             try:
                 k = "n:%s" % base62.base62_decode(n)
             except:
@@ -77,10 +105,19 @@ class IndexHandler(BaseHandler, DatabaseMixin):
                     raise cyclone.web.HTTPError(404)
         else:
             if "text/html" in self.request.headers.get("Accept"):
-                self.set_header("Content-Type", "text/html; charset=UTF-8")
-                url = "%s://%s" % (self.request.protocol, self.request.host)
-                self.render("index.html", url=url)
+                self.render("index.html",
+                    url="%s://%s" % (self.request.protocol, self.request.host),
+                    limit="Maximum of %d xpbpaste and %d xpbcopy every %s, "
+                          "of %s each, expiring in %s." % (
+                            self.settings.limits.throttle_get,
+                            self.settings.limits.throttle_post,
+                            human_time(self.locale.translate,
+                                       self.settings.limits.throttle_interval),
+                            human_bytes(self.settings.limits.pbsize),
+                            human_time(self.locale.translate,
+                                       self.settings.limits.pbexpire)))
             else:
+                self.set_header("Content-Type", "text/plain")
                 self.finish("Use: xpbpaste <pbid>\r\n")
 
     @defer.inlineCallbacks

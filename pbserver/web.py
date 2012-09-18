@@ -30,5 +30,10 @@ class Application(cyclone.web.Application):
                     (r"/(.*)", views.IndexHandler)]
 
         settings = config.parse_config(config_file)
+
+        locales = settings.get("locale_path")
+        if locales:
+            cyclone.locale.load_gettext_translations(locales, "pbserver")
+
         DatabaseMixin.setup(settings)
         cyclone.web.Application.__init__(self, handlers, **settings)
